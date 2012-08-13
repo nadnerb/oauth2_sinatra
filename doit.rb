@@ -58,7 +58,7 @@ def authorize_url
 end
 
 get "/" do
-    %(<p>Update the <code>#new_client</code> method in the sinatra app and <a href="/auth/github">try to authorize</a>.</p>)
+    %(<p><a href="/auth/github">Try to authorize</a>.</p>)
 end
 
 get '/auth/github' do
@@ -67,15 +67,14 @@ get '/auth/github' do
   redirect url
 end
 
-get '/repo/' do
-  Octokit.repo(Repository.new('pengwynn/octokit'))
+get '/repo/:name' do
+  Octokit.repo(Octokit::Repository.new(params[:name])).to_json
   #github_request("user/repos")
 end
 
 get '/following/' do
   Octokit.following('nadnerb').to_json
 end
-
 
 # If the user authorizes it, this request gets your access token
 # and makes a successful api call.
@@ -84,8 +83,11 @@ get '/auth/github/callback' do
   begin
     access_token = client.auth_code.get_token(params[:code], :redirect_uri => redirect_uri)
     @token = access_token.token
-    #user_info_for(@token)
-    repos(@token)
+    user = Yajl.load(user_info_for(@token))
+    client = Octokit::Client.new(:login => user['login'], :oauth_token => @token)
+    #post("/#{user['login']}/repos", {name: 'fooz'}, @token)
+    #post("/user/repos", {name: 'fooz'}, @token)
+    client.create('foozie').to_json
   rescue OAuth2::Error => e
     %(<p>Outdated ?code=#{params[:code]}:</p><p>#{$!}</p><p><a href="/auth/github">Retry</a></p>)
   end
@@ -105,4 +107,12 @@ end
 def github_raw_request(path, params = {})
   headers = {:Authorization => "token #{@token}", :accept => :json}
   RestClient.get("#{oauth_domain}/#{path}", headers.merge(:params => params))
+end
+
+# couldn't get this to work
+def post(path, params, token = @token)
+  #headers = {:Authorization => "token #{token}", :content_type => :json, :accept => :json}
+  headers = {:Authorization => "bearer #{token}", :content_type => :json, :accept => :json}
+  res = RestClient.post("#{oauth_domain}/#{path}", params.to_json, headers)
+  Yajl.load(res)
 end
