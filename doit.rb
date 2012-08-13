@@ -87,7 +87,7 @@ get '/auth/github/callback' do
     client = Octokit::Client.new(:login => user['login'], :oauth_token => @token)
     #post("/#{user['login']}/repos", {name: 'fooz'}, @token)
     #post("/user/repos", {name: 'fooz'}, @token)
-    client.create('foozie').to_json
+    client.create('oath2_sinatra', {private: 'true'}).to_json
   rescue OAuth2::Error => e
     %(<p>Outdated ?code=#{params[:code]}:</p><p>#{$!}</p><p><a href="/auth/github">Retry</a></p>)
   end
