@@ -20,8 +20,8 @@ def ssl_options
 end
 
 def client
-  @client_id = '30ecd9aece981943e2c0'
-  @secret = 'dc6de65c500db6d64a66de52b9dbc3611f744077'
+  @client_id = 'set this up in github'
+  @secret = 'set this up in github'
   @client ||= OAuth2::Client.new(@client_id, @secret,
                                  :ssl           => ssl_options,
                                  :site          => oauth_domain,
